@@ -1,0 +1,54 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Stores user-specific settings and profile information.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Unique identifier for the user." },
+        "email": { "type": "string", "format": "email", "description": "User's email address." },
+        "displayName": { "type": "string", "description": "User's display name." },
+        "photoURL": { "type": "string", "format": "uri", "description": "User's profile photo URL." },
+        "role": { "type": "string", "enum": ["user", "admin"], "description": "User's role in the system." }
+      },
+      "required": ["uid", "email"]
+    },
+    "Thought": {
+      "title": "Mental Thought",
+      "description": "A captured idea, task, or reference.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "uid": { "type": "string", "description": "Owner of the thought." },
+        "content": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "status": { "type": "string", "enum": ["raw", "action", "future", "reference", "discarded"] },
+        "kanbanStatus": { "type": "string", "enum": ["todo", "doing", "done"] },
+        "aiSummary": { "type": "string" },
+        "attachments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": { "type": "string", "enum": ["image", "video", "audio", "file"] },
+              "url": { "type": "string" },
+              "name": { "type": "string" },
+              "mimeType": { "type": "string" }
+            }
+          }
+        }
+      },
+      "required": ["id", "uid", "content", "createdAt", "status"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile document."
+    },
+    "/users/{userId}/thoughts/{thoughtId}": {
+      "schema": "Thought",
+      "description": "Collection of thoughts for a specific user."
+    }
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "name": "Mental Inbox",
+  "description": "A neuro-compatible system for rapid idea capture and visual progress.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
