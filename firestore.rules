@@ -10,16 +10,30 @@
 //   - photoURL: string
 //   - role: string (user, admin)
 //
-// Collection: /users/{userId}/thoughts/{thoughtId}
+// Collection: /users/{userId}/items/{itemId}
 // Fields:
 //   - id: string (required)
 //   - uid: string (required)
-//   - content: string (required)
+//   - type: string (ideia, tarefa, insight, melhoria, projeto) (required)
+//   - title: string (required)
+//   - content: string
 //   - createdAt: number (required)
-//   - status: string (raw, action, future, reference, discarded)
-//   - kanbanStatus: string (todo, doing, done)
-//   - aiSummary: string
-//   - attachments: array of objects
+//   - updatedAt: number (required)
+//   - status: string (capturado, em_analise, direcao_ativa, incubado, concluido, arquivado) (required)
+//   - context: string (produto, conteudo, operacao, pessoal, geral)
+//   - projectId: string
+//   - tags: array
+//   - attachments: array
+//   - priority: string
+//
+// Collection: /users/{userId}/commands/{commandId}
+// Fields:
+//   - id: string (required)
+//   - uid: string (required)
+//   - command: string (required)
+//   - response: string (required)
+//   - timestamp: number (required)
+//   - undoData: string
 //
 // ===============================================================
 
@@ -47,12 +61,23 @@ service cloud.firestore {
              data.email is string && data.email.size() > 0;
     }
 
-    function isValidThought(data) {
+    function isValidItem(data) {
       return data.id is string &&
              data.uid == request.auth.uid &&
-             data.content is string && data.content.size() < 10000 &&
+             data.type in ['ideia', 'tarefa', 'insight', 'melhoria', 'projeto'] &&
+             data.title is string && data.title.size() < 500 &&
+             (!('content' in data) || (data.content is string && data.content.size() < 50000)) &&
              data.createdAt is number &&
-             data.status in ['raw', 'action', 'future', 'reference', 'discarded'];
+             data.updatedAt is number &&
+             data.status in ['capturado', 'em_analise', 'direcao_ativa', 'incubado', 'concluido', 'arquivado'];
+    }
+
+    function isValidCommand(data) {
+      return data.id is string &&
+             data.uid == request.auth.uid &&
+             data.command is string && data.command.size() < 10000 &&
+             data.response is string && data.response.size() < 50000 &&
+             data.timestamp is number;
     }
 
     function isAdmin() {
@@ -70,10 +95,17 @@ service cloud.firestore {
       allow create: if isAuthenticated() && isOwner(userId) && isValidUser(request.resource.data) && (request.resource.data.role == 'user' || isAdmin());
       allow update: if isAuthenticated() && isOwner(userId) && isValidUser(request.resource.data) && (request.resource.data.role == resource.data.role || isAdmin());
       
-      match /thoughts/{thoughtId} {
+      match /items/{itemId} {
         allow read: if isOwner(userId) || isAdmin();
-        allow create: if isOwner(userId) && isValidThought(request.resource.data);
-        allow update: if isOwner(userId) && isValidThought(request.resource.data);
+        allow create: if isOwner(userId) && isValidItem(request.resource.data);
+        allow update: if isOwner(userId) && isValidItem(request.resource.data);
+        allow delete: if isOwner(userId);
+      }
+
+      match /commands/{commandId} {
+        allow read: if isOwner(userId) || isAdmin();
+        allow create: if isOwner(userId) && isValidCommand(request.resource.data);
+        allow update: if isOwner(userId) && isValidCommand(request.resource.data);
         allow delete: if isOwner(userId);
       }
     }

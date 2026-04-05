@@ -13,32 +13,40 @@
       },
       "required": ["uid", "email"]
     },
-    "Thought": {
-      "title": "Mental Thought",
-      "description": "A captured idea, task, or reference.",
+    "Item": {
+      "title": "App Item",
+      "description": "A unified entity for tasks, projects, notes, ideas, and reminders.",
       "type": "object",
       "properties": {
         "id": { "type": "string" },
-        "uid": { "type": "string", "description": "Owner of the thought." },
+        "uid": { "type": "string" },
+        "type": { "type": "string", "enum": ["ideia", "tarefa", "insight", "melhoria", "projeto"] },
+        "title": { "type": "string" },
         "content": { "type": "string" },
         "createdAt": { "type": "number" },
-        "status": { "type": "string", "enum": ["raw", "action", "future", "reference", "discarded"] },
-        "kanbanStatus": { "type": "string", "enum": ["todo", "doing", "done"] },
-        "aiSummary": { "type": "string" },
-        "attachments": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "type": { "type": "string", "enum": ["image", "video", "audio", "file"] },
-              "url": { "type": "string" },
-              "name": { "type": "string" },
-              "mimeType": { "type": "string" }
-            }
-          }
-        }
+        "updatedAt": { "type": "number" },
+        "status": { "type": "string", "enum": ["capturado", "em_analise", "direcao_ativa", "incubado", "concluido", "arquivado"] },
+        "context": { "type": "string", "enum": ["produto", "conteudo", "operacao", "pessoal", "geral"] },
+        "projectId": { "type": "string" },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "attachments": { "type": "array", "items": { "type": "object" } },
+        "priority": { "type": "string", "enum": ["low", "medium", "high"] }
       },
-      "required": ["id", "uid", "content", "createdAt", "status"]
+      "required": ["id", "uid", "type", "title", "createdAt", "updatedAt", "status"]
+    },
+    "CommandHistory": {
+      "title": "Command History",
+      "description": "History of user commands and AI responses.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "uid": { "type": "string" },
+        "command": { "type": "string" },
+        "response": { "type": "string" },
+        "timestamp": { "type": "number" },
+        "undoData": { "type": "string" }
+      },
+      "required": ["id", "uid", "command", "response", "timestamp"]
     }
   },
   "firestore": {
@@ -46,9 +54,13 @@
       "schema": "User",
       "description": "User profile document."
     },
-    "/users/{userId}/thoughts/{thoughtId}": {
-      "schema": "Thought",
-      "description": "Collection of thoughts for a specific user."
+    "/users/{userId}/items/{itemId}": {
+      "schema": "Item",
+      "description": "Collection of items for a specific user."
+    },
+    "/users/{userId}/commands/{commandId}": {
+      "schema": "CommandHistory",
+      "description": "Collection of command history for a specific user."
     }
   }
 }
